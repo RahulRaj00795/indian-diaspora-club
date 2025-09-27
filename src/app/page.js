@@ -1,4 +1,5 @@
-"use client";
+
+'use client';
 
 import { Layout, Menu, Typography, Card, Row, Col, Button, Divider, List, Drawer } from 'antd';
 import { 
@@ -13,7 +14,7 @@ import {
   FacebookOutlined,
   MenuOutlined
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const { Header, Content, Footer } = Layout;
 const { Title, Paragraph } = Typography;
@@ -21,6 +22,41 @@ const { Title, Paragraph } = Typography;
 export default function Home() {
   // State for mobile menu drawer
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [news, setNews] = useState([]);
+  const [achievers, setAchievers] = useState([]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const response = await fetch('/api/news');
+        if (response.ok) {
+          const data = await response.json();
+          setNews(data);
+        } else {
+          console.error('Failed to fetch news');
+        }
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      }
+    };
+
+    const fetchAchievers = async () => {
+      try {
+        const response = await fetch('/api/achievers');
+        if (response.ok) {
+          const data = await response.json();
+          setAchievers(data);
+        } else {
+          console.error('Failed to fetch achievers');
+        }
+      } catch (error) {
+        console.error('Error fetching achievers:', error);
+      }
+    };
+
+    fetchNews();
+    fetchAchievers();
+  }, []);
 
   // Menu items array for reuse
   const menuItems = [
@@ -31,19 +67,6 @@ export default function Home() {
     { key: 'news', icon: <ReadOutlined />, label: 'Diaspora News' },
     { key: 'events', icon: <CalendarOutlined />, label: 'Events' },
     { key: 'contact', icon: <ContactsOutlined />, label: 'Contact Us' }
-  ];
-
-  // Mock news data
-  const newsItems = [
-    { title: 'News 1', content: 'This is the first news item with a link', link: '#' },
-    { title: 'News 2', content: 'This is the second news item', link: '#' },
-    { title: 'News 3', content: 'This is the third news item', link: '#' }
-  ];
-
-  // Mock achievers data
-  const achievers = [
-    { name: 'Achiever 1', description: 'Accomplished in field of technology' },
-    { name: 'Achiever 2', description: 'Recognized for contributions to science' }
   ];
 
   return (
@@ -99,11 +122,15 @@ export default function Home() {
         <Row gutter={[24, 24]}>
           <Col xs={24} md={16}>
             <Card title="Featured News" className="h-full">
-              <div className="border rounded p-4 mb-4">
-                <Title level={4}>{newsItems[0].title}</Title>
-                <Paragraph>{newsItems[0].content}</Paragraph>
-                <Button type="link" href={newsItems[0].link}>Read More</Button>
-              </div>
+              {
+                news.length > 0 &&
+                <div className="border rounded p-4 mb-4">
+                  <img src={news[0].image} alt={news[0].title} className="w-full h-64 object-cover mb-4" />
+                  <Title level={4}>{news[0].title}</Title>
+                  <Paragraph>{news[0].description}</Paragraph>
+                  <Button type="link" href={news[0].link} target="_blank">Read More</Button>
+                </div>
+              }
             </Card>
           </Col>
           
@@ -111,11 +138,13 @@ export default function Home() {
             <Card title="Latest News" className="h-full">
               <List
                 itemLayout="vertical"
-                dataSource={newsItems}
+                dataSource={news}
                 renderItem={(item) => (
-                  <List.Item>
+                  <List.Item
+                    extra={<img width={150} alt={item.title} src={item.image} />}
+                  >
                     <Title level={5}>{item.title}</Title>
-                    <Paragraph ellipsis={{ rows: 2 }}>{item.content}</Paragraph>
+                    <Paragraph ellipsis={{ rows: 2 }}>{item.description}</Paragraph>
                   </List.Item>
                 )}
               />
